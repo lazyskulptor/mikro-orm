@@ -5,7 +5,17 @@ import type {
   FindOneOptions, FindOptions, IDatabaseDriver, LockOptions, NativeInsertUpdateManyOptions, NativeInsertUpdateOptions,
   PopulateOptions, Primary, QueryOrderMap, QueryResult, RequiredEntityData, Transaction,
 } from '@mikro-orm/core';
-import { DatabaseDriver, EntityManagerType, helper, LoadStrategy, QueryFlag, QueryHelper, ReferenceType, Utils } from '@mikro-orm/core';
+import {
+  DatabaseDriver,
+  EntityLoader,
+  EntityManagerType,
+  helper,
+  LoadStrategy,
+  QueryFlag,
+  QueryHelper,
+  ReferenceType,
+  Utils,
+} from '@mikro-orm/core';
 import type { AbstractSqlConnection } from './AbstractSqlConnection';
 import type { AbstractSqlPlatform } from './AbstractSqlPlatform';
 import { QueryBuilder, QueryType } from './query';
@@ -45,16 +55,21 @@ export abstract class AbstractSqlDriver<Connection extends AbstractSqlConnection
 
     const populate = this.autoJoinOneToOneOwner(meta, options.populate as unknown as PopulateOptions<T>[], options.fields);
     const joinedProps = this.joinedProps(meta, populate);
-    const qb = this.createQueryBuilder<T>(entityName, options.ctx, options.connectionType, false);
+    const qb = this.createQueryBuilder<T>(entityName, options.ctx, options.connectionType, false)
+      .populate(populate, joinedProps.length > 0 ? options.populateWhere : undefined);
+    console.log(1);
     const fields = this.buildFields(meta, populate, joinedProps, qb, options.fields as Field<T>[]);
+    console.log(2);
     const joinedPropsOrderBy = this.buildJoinedPropsOrderBy(entityName, qb, meta, joinedProps);
+    console.log(3);
 
     if (Utils.isPrimaryKey(where, meta.compositePK)) {
       where = { [Utils.getPrimaryKeyHash(meta.primaryKeys)]: where } as FilterQuery<T>;
     }
 
+    console.log(options.populateWhere);
+
     qb.select(fields)
-      .populate(populate, joinedProps.length > 0 ? options.populateWhere : undefined)
       .where(where)
       .orderBy([...Utils.asArray(options.orderBy), ...joinedPropsOrderBy])
       .groupBy(options.groupBy!)
@@ -710,6 +725,8 @@ export abstract class AbstractSqlDriver<Connection extends AbstractSqlConnection
       const tableAlias = qb.getNextAlias(prop.name);
       const field = parentTableAlias ? `${parentTableAlias}.${prop.name}` : prop.name;
       const path = parentJoinPath ? `${parentJoinPath}.${prop.name}` : `${meta.name}.${prop.name}`;
+      // FIXME this is where we could somehow infer the join condition,
+      //  or maybe leave it for later and modify the join before finalization?
       qb.join(field, tableAlias, {}, 'leftJoin', path);
       const childExplicitFields = explicitFields?.filter(f => Utils.isPlainObject(f)).map(o => o[prop.name])[0] || [];
 

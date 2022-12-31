@@ -786,6 +786,14 @@ export class QueryBuilder<T extends object = AnyEntity> {
       this._joins[aliasedName].path = path;
     }
 
+    // TODO populate where is now used for two purposes, we should remove the use in regular where conditions probably,
+    //  process it only once and extract the right parts where appropriate, now its only hacked and wont work in many cases.
+    //  it should be fine to extract the parts based on current join alias
+    if (this._populateWhere) {
+      const criteriaNode = CriteriaNodeFactory.createNode(this.metadata, this.mainAlias.entityName, this._populateWhere);
+      this._joins[aliasedName].cond = criteriaNode.process(this);
+    }
+
     return prop;
   }
 
