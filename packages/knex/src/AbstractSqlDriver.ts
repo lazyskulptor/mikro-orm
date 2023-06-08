@@ -171,7 +171,7 @@ export abstract class AbstractSqlDriver<Connection extends AbstractSqlConnection
     em.setTransactionContext(options.ctx);
     const res = meta.expression(em, where, options);
 
-    if (res instanceof QueryBuilder<T[]>) {
+    if (res instanceof QueryBuilder) {
       return this.wrapVirtualExpressionInSubquery(meta, res.getFormattedQuery(), where, options);
     }
 
@@ -195,7 +195,7 @@ export abstract class AbstractSqlDriver<Connection extends AbstractSqlConnection
     em.setTransactionContext(options.ctx);
     const res = meta.expression(em, where, options as Dictionary);
 
-    if (res instanceof QueryBuilder<T[]>) {
+    if (res instanceof QueryBuilder) {
       return this.wrapVirtualExpressionInSubquery(meta, res.getFormattedQuery(), where, options as Dictionary, QueryType.COUNT);
     }
 

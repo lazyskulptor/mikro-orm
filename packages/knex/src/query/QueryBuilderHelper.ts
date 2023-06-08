@@ -513,7 +513,8 @@ export class QueryBuilderHelper {
     const fields = Utils.splitPrimaryKeys(key);
 
     if (fields.length > 1 && Array.isArray(value[op]) && !value[op].every((v: unknown) => Array.isArray(v))) {
-      value[op] = this.knex.raw(`(${fields.map(() => '?').join(', ')})`, value[op]);
+      const tmp = value[op].length === 1 && Utils.isPlainObject(value[op][0]) ? fields.map(f => value[op][0][f]) : value[op];
+      value[op] = this.knex.raw(`(${fields.map(() => '?').join(', ')})`, tmp);
     }
 
     if (this.subQueries[key]) {

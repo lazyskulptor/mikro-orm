@@ -8,6 +8,7 @@
     "sourceMap": false,
     "strict": true,
     "esModuleInterop": true,
+    "useDefineForClassFields": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "preserveConstEnums": true,

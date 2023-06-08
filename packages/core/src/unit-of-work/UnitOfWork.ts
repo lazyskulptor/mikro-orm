@@ -10,7 +10,7 @@ import type {
   IPrimaryKeyValue,
   Primary,
 } from '../typings';
-import { Collection, EntityIdentifier, helper, Reference } from '../entity';
+import { Collection, EntityHelper, EntityIdentifier, helper, Reference } from '../entity';
 import { ChangeSet, ChangeSetType } from './ChangeSet';
 import { ChangeSetComputer } from './ChangeSetComputer';
 import { ChangeSetPersister } from './ChangeSetPersister';
@@ -83,6 +83,7 @@ export class UnitOfWork {
    */
   registerManaged<T extends object>(entity: T, data?: EntityData<T>, options?: RegisterManagedOptions): T {
     this.identityMap.store(entity);
+    EntityHelper.ensurePropagation(entity);
 
     if (options?.newEntity) {
       return entity;
@@ -283,6 +284,8 @@ export class UnitOfWork {
   }
 
   persist<T extends object>(entity: T, visited?: Set<AnyEntity>, options: { checkRemoveStack?: boolean; cascade?: boolean } = {}): void {
+    EntityHelper.ensurePropagation(entity);
+
     if (options.checkRemoveStack && this.removeStack.has(entity)) {
       return;
     }
@@ -312,7 +315,7 @@ export class UnitOfWork {
         continue;
       }
 
-      const target = relation && relation[inverseProp as keyof typeof relation];
+      const target = relation && relation[inverseProp as keyof typeof relation] as unknown;
 
       if (relation && Utils.isCollection(target)) {
         target.removeWithoutPropagation(entity);

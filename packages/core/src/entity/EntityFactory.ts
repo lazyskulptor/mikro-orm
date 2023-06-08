@@ -16,6 +16,7 @@ import { EventType, ReferenceKind } from '../enums';
 import { Reference } from './Reference';
 import { helper } from './wrap';
 import type { EntityComparator } from '../utils/EntityComparator';
+import { EntityHelper } from './EntityHelper';
 
 export interface FactoryOptions {
   initialized?: boolean;
@@ -241,14 +242,8 @@ export class EntityFactory {
 
       helper(entity).__schema = this.driver.getSchemaName(meta, options);
 
-      if (!options.newEntity) {
-        meta.relations
-          .filter(prop => [ReferenceKind.ONE_TO_MANY, ReferenceKind.MANY_TO_MANY].includes(prop.kind))
-          .forEach(prop => delete entity[prop.name]);
-
-        if (options.initialized && !(entity as Dictionary).__gettersDefined) {
-          Object.defineProperties(entity, meta.definedProperties);
-        }
+      if (options.initialized) {
+        EntityHelper.ensurePropagation(entity);
       }
 
       return entity;
@@ -265,8 +260,8 @@ export class EntityFactory {
       this.unitOfWork.registerManaged(entity);
     }
 
-    if (options.initialized && !(entity as Dictionary).__gettersDefined) {
-      Object.defineProperties(entity, meta.definedProperties);
+    if (options.initialized) {
+      EntityHelper.ensurePropagation(entity);
     }
 
     return entity;
