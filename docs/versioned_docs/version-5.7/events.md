@@ -87,7 +87,7 @@ Additionally, future versions of MikroORM will be dropping support for the`@Subs
 Another example, where we register to all the events and all entities:
 
 ```ts
-import { EventArgs, EventSubscriber } from '@mikro-orm/core';
+import { EventArgs, FlushEventArgs, TransactionEventArgs, EventSubscriber } from '@mikro-orm/core';
 
 export class EverythingSubscriber implements EventSubscriber {
 
@@ -104,9 +104,9 @@ export class EverythingSubscriber implements EventSubscriber {
   async afterDelete<T>(args: EventArgs<T>): Promise<void> { ... }
 
   // flush events
-  async beforeFlush<T>(args: EventArgs<T>): Promise<void> { ... }
-  async onFlush<T>(args: EventArgs<T>): Promise<void> { ... }
-  async afterFlush<T>(args: EventArgs<T>): Promise<void> { ... }
+  async beforeFlush<T>(args: FlushEventArgs): Promise<void> { ... }
+  async onFlush<T>(args: FlushEventArgs): Promise<void> { ... }
+  async afterFlush<T>(args: FlushEventArgs): Promise<void> { ... }
 
   // transaction events
   async beforeTransactionStart(args: TransactionEventArgs): Promise<void> { ... }
@@ -159,7 +159,7 @@ There is a special kind of events executed during the commit phase (flush operat
 Flush event args will not contain any entity instance, as they are entity agnostic. They do contain additional reference to the `UnitOfWork` instance.
 
 ```ts
-interface FlushEventArgs extends Omit<EventArgs<unknown>, 'entity'> {
+interface FlushEventArgs extends Omit<FlushEventArgs, 'entity'> {
   uow?: UnitOfWork;
 }
 ```
